@@ -64,7 +64,17 @@ class MainViewController: UIViewController {
     }
     
     @IBAction func actionAdd() {
-        images.value.append(UIImage(named: "IMG_1907.jpg")!)
+//        images.value.append(UIImage(named: "IMG_1907.jpg")!)
+        let photosViewController = storyboard?.instantiateViewController(withIdentifier: "PhotosViewController") as! PhotosViewController
+        _ = photosViewController.selectedPhotos
+            .subscribe(
+                onNext: { [weak self] newImage in
+                    guard let images = self?.images else { return }
+                    images.value.append(newImage)
+                }, onDisposed: {
+                    print("completed photo selected")
+            })
+        navigationController?.pushViewController(photosViewController, animated: true)
     }
     
     func showMessage(_ title: String, description: String? = nil) {
