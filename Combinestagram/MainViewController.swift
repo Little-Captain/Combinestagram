@@ -55,6 +55,16 @@ class MainViewController: UIViewController {
         title = photos.count > 0 ? "\(photos.count) photos" : "Collage"
     }
     
+    private func updateNavigationIcon() {
+        let icon = imagePreview.image?
+            .scaled(CGSize(width: 22, height: 22))
+            .withRenderingMode(.alwaysOriginal)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: icon,
+                                                           style: .done,
+                                                           target: nil,
+                                                           action: nil)
+    }
+    
     @IBAction func actionClear() {
         images.value = []
     }
@@ -77,13 +87,20 @@ class MainViewController: UIViewController {
     @IBAction func actionAdd() {
 //        images.value.append(UIImage(named: "IMG_1907.jpg")!)
         let photosViewController = storyboard?.instantiateViewController(withIdentifier: "PhotosViewController") as! PhotosViewController
-        _ = photosViewController.selectedPhotos
+        let newPhotos = photosViewController.selectedPhotos.share()
+        _ = newPhotos
+            .filter { $0.size.width > $0.size.height }
             .subscribe(
                 onNext: { [weak self] newImage in
                     guard let images = self?.images else { return }
                     images.value.append(newImage)
                 }, onDisposed: {
                     print("completed photo selected")
+            })
+        _ = newPhotos
+            .ignoreElements()
+            .subscribe(onCompleted: { [weak self] in
+                self?.updateNavigationIcon()
             })
         navigationController?.pushViewController(photosViewController, animated: true)
     }
