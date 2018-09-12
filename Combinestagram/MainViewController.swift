@@ -36,13 +36,17 @@ class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let imagesO = images.asObservable().share()
+        let imagesO = images
+            .asObservable()
+            .throttle(0.5, scheduler: MainScheduler.instance)
+            .share()
+        
         imagesO
-            .subscribe(onNext: { [weak self] photos in
-                guard let preview = self?.imagePreview else { return }
-                preview.image = UIImage.collage(images: photos, size: preview.frame.size)
+            .subscribe(onNext: { [unowned self] photos in
+                self.imagePreview.image = UIImage.collage(images: photos, size: self.imagePreview.frame.size)
             })
             .disposed(by: bag)
+        
         imagesO
             .subscribe(onNext: { [weak self] photos in
                 self?.updateUI(photos: photos)
@@ -70,6 +74,7 @@ class MainViewController: UIViewController {
     @IBAction func actionClear() {
         images.value = []
         imageCache = []
+        updateNavigationIcon()
     }
     
     @IBAction func actionSave() {

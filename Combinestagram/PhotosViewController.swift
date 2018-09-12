@@ -26,6 +26,7 @@ import RxSwift
 
 class PhotosViewController: UICollectionViewController {
     
+    deinit { print("\(self) deinit") }
     // MARK: public properties
     
     // MARK: private properties
