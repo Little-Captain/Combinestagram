@@ -32,16 +32,18 @@ class MainViewController: UIViewController {
     
     private let bag = DisposeBag()
     private let images = Variable<[UIImage]>([])
+    private var imageCache = [Int]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        images.asObservable()
+        let imagesO = images.asObservable().share()
+        imagesO
             .subscribe(onNext: { [weak self] photos in
                 guard let preview = self?.imagePreview else { return }
                 preview.image = UIImage.collage(images: photos, size: preview.frame.size)
             })
             .disposed(by: bag)
-        images.asObservable()
+        imagesO
             .subscribe(onNext: { [weak self] photos in
                 self?.updateUI(photos: photos)
             })
@@ -67,6 +69,7 @@ class MainViewController: UIViewController {
     
     @IBAction func actionClear() {
         images.value = []
+        imageCache = []
     }
     
     @IBAction func actionSave() {
@@ -89,7 +92,19 @@ class MainViewController: UIViewController {
         let photosViewController = storyboard?.instantiateViewController(withIdentifier: "PhotosViewController") as! PhotosViewController
         let newPhotos = photosViewController.selectedPhotos.share()
         _ = newPhotos
+            // 只取 6 张图片
+            .takeWhile { [weak self] _ in (self?.images.value.count ?? 0) < 6 }
+            // 过滤掉纵向图片
             .filter { $0.size.width > $0.size.height }
+            // 过滤掉重复图片
+            .filter { [weak self] newImage in
+                let len = UIImagePNGRepresentation(newImage)?.count ?? 0
+                guard self?.imageCache.contains(len) == false else {
+                    return false
+                }
+                self?.imageCache.append(len)
+                return true
+            }
             .subscribe(
                 onNext: { [weak self] newImage in
                     guard let images = self?.images else { return }
@@ -98,6 +113,7 @@ class MainViewController: UIViewController {
                     print("completed photo selected")
             })
         _ = newPhotos
+            // 忽略所有 .next 事件
             .ignoreElements()
             .subscribe(onCompleted: { [weak self] in
                 self?.updateNavigationIcon()
