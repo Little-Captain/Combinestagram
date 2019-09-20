@@ -26,13 +26,13 @@ import Photos
 import RxSwift
 
 class PhotoWriter {
-    
+
     enum Errors: Error {
-        
+
         case couldNotSavePhoto
-        
+
     }
-    
+
 //    static func save(_ image: UIImage) -> Observable<String> {
 //        return Observable.create({ observer in
 //            var savedAssetId: String?
@@ -52,7 +52,7 @@ class PhotoWriter {
 //            return Disposables.create()
 //        })
 //    }
-    
+
     static func save(_ image: UIImage) -> Single<String> {
         return Single.create(subscribe: { single in
             var savedAssetId: String?
@@ -71,5 +71,5 @@ class PhotoWriter {
             return Disposables.create()
         })
     }
-    
+
 }

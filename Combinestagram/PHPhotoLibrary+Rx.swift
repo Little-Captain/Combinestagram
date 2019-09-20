@@ -11,7 +11,7 @@ import Photos
 import RxSwift
 
 extension PHPhotoLibrary {
-    
+
     // 授权的两条路径
     // 1. 已允许, .next(true) -> .completed
     // 2. 未允许, .next(false) -> 请求授权 -> .next(结果(true or false)) -> .completed
@@ -32,5 +32,5 @@ extension PHPhotoLibrary {
             return Disposables.create()
         }
     }
-    
+
 }
